@@ -1,3 +1,5 @@
+"""Utility functions for the app."""
+
 from django.http import HttpRequest
 import hashlib
 
