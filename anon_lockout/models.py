@@ -3,15 +3,6 @@
 from django.db import models
 
 
-class Attempt(models.Model):
-    """
-    An attempt has an IP-address, data wheter the attempt was successful or not,
-    and which resource which was tried to be accessed.
-    """
-    failed = models.BooleanField()
-    date = models.DateTimeField(auto_now_add=True)
-
-
 class AccessSession(models.Model):
     """
     An access session can be abstracted to a user session. It holds information
@@ -19,8 +10,26 @@ class AccessSession(models.Model):
     """
 
     ip = models.CharField(max_length=256)
-    failed_in_row = models.IntegerField()
+    failed_in_row = models.IntegerField(default=0)
     last_access = models.DateTimeField()
+    resource = models.CharField(max_length=100)
+
+
+class Attempt(models.Model):
+    """
+    An attempt has an IP-address, data wheter the attempt was successful or not,
+    and which resource (url) which was tried to be accessed.
+    """
+
+    failed = models.BooleanField()
+    date = models.DateTimeField(auto_now_add=True)
+    session = models.ForeignKey(
+        AccessSession,
+        on_delete=models.CASCADE,
+        related_name="attempts",
+        null=True
+    )
+    resource = models.CharField(max_length=100)
 
 
 class Lockout(models.Model):
