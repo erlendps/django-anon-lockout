@@ -8,7 +8,7 @@ class Attempt(models.Model):
     An attempt has an IP-address, data wheter the attempt was successful or not,
     and which resource which was tried to be accessed.
     """
-    success = models.BooleanField()
+    failed = models.BooleanField()
     date = models.DateTimeField(auto_now_add=True)
 
 
@@ -20,6 +20,7 @@ class AccessSession(models.Model):
 
     ip = models.CharField(max_length=256)
     failed_in_row = models.IntegerField()
+    last_access = models.DateTimeField(auto_now_add=True)
 
 
 class Lockout(models.Model):
