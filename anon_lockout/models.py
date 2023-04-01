@@ -20,7 +20,7 @@ class AccessSession(models.Model):
 
     ip = models.CharField(max_length=256)
     failed_in_row = models.IntegerField()
-    last_access = models.DateTimeField(auto_now_add=True)
+    last_access = models.DateTimeField()
 
 
 class Lockout(models.Model):
