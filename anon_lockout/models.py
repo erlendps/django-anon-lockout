@@ -3,8 +3,8 @@
 from django.db import models
 
 
-class AnonLockoutManager(models.Manager):
-    """Custom manager for anon lockout models."""
+class LockoutManager(models.Manager):
+    """Custom manager for Lockout model."""
 
     def get_or_none(self, *args, **kwargs):
         """Fetches the specified object if it exists, otherwise it returns None"""
@@ -12,6 +12,11 @@ class AnonLockoutManager(models.Manager):
             return self.get(*args, **kwargs)
         except Exception:
             return None
+
+    def get_queryset(self):
+        """Override get_queryset so it filters away inactive lockouts."""
+
+        return super().get_queryset().filter(active=True)
 
 
 class AccessSession(models.Model):
@@ -24,7 +29,11 @@ class AccessSession(models.Model):
     failed_in_row = models.IntegerField(default=0)
     last_access = models.DateTimeField()
     resource = models.CharField(max_length=100)
-    objects = AnonLockoutManager()
+
+    def has_active_lockout(self):
+        """Returns true if there is an active lockout connected to this session."""
+
+        return self.lockouts.filter(active=True).exists()
 
 
 class Attempt(models.Model):
@@ -41,7 +50,6 @@ class Attempt(models.Model):
         related_name="attempts",
         null=True
     )
-    objects = AnonLockoutManager()
 
 
 class Lockout(models.Model):
@@ -52,8 +60,8 @@ class Lockout(models.Model):
     """
 
     session = models.ForeignKey(
-        to=AccessSession, on_delete=models.DO_NOTHING, null=True)
-    ip = models.CharField(max_length=256)
-    resource = models.CharField(max_length=100)
+        to=AccessSession, on_delete=models.DO_NOTHING, related_name="lockouts", null=True)
     unlocks_on = models.DateTimeField()
-    objects = AnonLockoutManager()
+    active = models.BooleanField(default=True)
+    objects = LockoutManager()
+    all_objects = models.Manager()
