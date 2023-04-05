@@ -3,6 +3,8 @@
 from django.http import HttpRequest
 from anon_lockout import utils
 from anon_lockout.models import AccessSession, Attempt, Lockout
+from anon_lockout.conf import LOCKOUT_DURATION, LOCKOUT_RESET_TIME, LOCKOUT_THRESHOLD
+import datetime
 
 
 def handle_attempt(request: HttpRequest, failed: bool, resource: str) -> bool:
@@ -17,28 +19,51 @@ def handle_attempt(request: HttpRequest, failed: bool, resource: str) -> bool:
     # get hashed ip
     ip = utils.get_ip(request)
     # create the attempt
-    attempt = Attempt.objects.create(failed=failed, resource=resource)
+    attempt: Attempt = Attempt.objects.create(failed=failed)
     # get session or create it
     session = AccessSession.objects.get_or_create(
-        defaults={"ip": ip, "last_access": attempt.date, "resource": resource}, ip=ip)
+        defaults={"ip": ip, "last_access": attempt.date, "resource": resource}, ip=ip, resource=resource)[0]
     attempt.session = session
     attempt.save()
 
+    lockout: Lockout = Lockout.objects.get_or_none(session=session)
+    if lockout != None:
+        if lockout.unlocks_on <= attempt.date:
+            lockout.active = False
+        else:
+            return False
     if failed:
-        return handle_failed_attempt(ip, session=session)
+        return handle_failed_attempt(attempt=attempt)
     else:
-        return handle_successful_attempt(ip, sessiona=session)
+        return handle_successful_attempt(attempt=attempt)
 
 
-def handle_failed_attempt(ip: str, session: AccessSession) -> bool:
+def handle_failed_attempt(attempt: Attempt) -> bool:
     """
     Handles the attempt if it was failed.
 
 
     """
+    session = attempt.session
+    if session.has_active_lockout():
+        session.failed_in_row += 1
+    elif (attempt.date - session.last_access).seconds >= LOCKOUT_RESET_TIME:
+        session.failed_in_row = 1
+    else:
+        session.failed_in_row += 1
+    session.last_access = attempt.date
+    session.save()
 
-    pass
+    if session.failed_in_row >= LOCKOUT_THRESHOLD and not session.has_active_lockout():
+        access = session.last_access
+        unlocks = datetime.datetime(
+            access.year, access.month, access.day, access.hour, access.minute + 1)
+        Lockout.objects.create(session=session, unlocks_on=unlocks)
+        return False
+    return True
 
 
-def handle_successful_attempt(ip: str, session: AccessSession) -> bool:
-    pass
+def handle_successful_attempt(attempt: Attempt) -> bool:
+    attempt.session.failed_in_row = 0
+    attempt.session.save()
+    return True
