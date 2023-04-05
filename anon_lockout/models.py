@@ -3,6 +3,17 @@
 from django.db import models
 
 
+class AnonLockoutManager(models.Manager):
+    """Custom manager for anon lockout models."""
+
+    def get_or_none(self, *args, **kwargs):
+        """Fetches the specified object if it exists, otherwise it returns None"""
+        try:
+            return self.get(*args, **kwargs)
+        except Exception:
+            return None
+
+
 class AccessSession(models.Model):
     """
     An access session can be abstracted to a user session. It holds information
@@ -13,6 +24,7 @@ class AccessSession(models.Model):
     failed_in_row = models.IntegerField(default=0)
     last_access = models.DateTimeField()
     resource = models.CharField(max_length=100)
+    objects = AnonLockoutManager()
 
 
 class Attempt(models.Model):
@@ -29,7 +41,7 @@ class Attempt(models.Model):
         related_name="attempts",
         null=True
     )
-    resource = models.CharField(max_length=100)
+    objects = AnonLockoutManager()
 
 
 class Lockout(models.Model):
@@ -42,4 +54,6 @@ class Lockout(models.Model):
     session = models.ForeignKey(
         to=AccessSession, on_delete=models.DO_NOTHING, null=True)
     ip = models.CharField(max_length=256)
+    resource = models.CharField(max_length=100)
     unlocks_on = models.DateTimeField()
+    objects = AnonLockoutManager()
