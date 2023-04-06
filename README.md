@@ -4,6 +4,8 @@ Django anonymous lockout is a simple django module for keeping track of failed l
 
 ## Installation
 
+Note: does not work yet.
+
 Djano anonymous lockout can be installed with pip:
 
 ```bash
