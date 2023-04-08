@@ -29,9 +29,26 @@ python manage.py migrate
 
 ## Usage
 
-Django Anonymous Lockout operates without signals, which means that you will specifically have to call the handler for it to work. The handler is specified in [`handlers.py`](./anon_lockout/handlers.py) (`handle_attempt`). It takes in the request, wheter the attempt was failed or not and which resource was attempted accessed.
+Django Anonymous Lockout operates without signals, which means that you will specifically have to call the handler for it to work. The handler is specified in [`handlers.py`](./anon_lockout/handlers.py) (`handle_attempt`). It takes in the ip, wheter the attempt was failed or not and which resource was attempted accessed.
 
 In your code, you would typically check if the password is correct and then call `handle_attempt` with the correct arguments. `handle_attempt` will return `True` if the attempt leads to a lockout, or the user (ip and resource) is already locked out. This means that even though a user might have "authenticated" correctly, if the ip is locked out, it will still not allow the user to see the resource.
+
+To get the IP of an request, you can for instance use this snippet:
+
+```python
+def get_ip(request: HttpRequest):
+    """Returns the ip (hashed) of the given request."""
+
+    user_ip: str = request.META.get("HTTP_X_FORWARDED_FOR")
+    ip: str = ""
+    if user_ip:
+        ip = user_ip.split(",")[0]
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    return hashlib.sha256(ip.encode("utf-8")).hexdigest()
+```
+
+This snippet is also included in `utils`.
 
 ### Example
 
