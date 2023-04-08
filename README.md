@@ -63,11 +63,11 @@ def my_endpoint(request, resource_id):
         if form.is_valid():
             password = form.cleaned_data["password"]
             if correct_password(password):
-                locked = handle_attempt(request, failed=False, resource="resource")
+                locked = handle_attempt(get_ip(request), failed=False, resource="resource")
                 if not locked:
                     return redirect(request, "see-resource")
             else:
-                locked = handle_attempt(request, failed=True, resource="resource")
+                locked = handle_attempt(get_ip(request), failed=True, resource="resource")
                 # do more handling here
             if locked:
                 form.add_error("password", "Locked out")
