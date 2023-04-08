@@ -90,3 +90,13 @@ There are 3 settings that you can override:
 `LOCKOUT_THRESHOLD`: Decides how many attempts **in a row** that has to fail for a lockout to occur. Default is 5.
 
 `LOCKOUT_RESET_TIME`: This setting decides how long between two attempts by the same user is needed for the attempt counter to reset. If for instance you set this to 10 minutes, then if a user fails an access to a resource, then assuming the user does not try to access the same resource within 10 minutes, the next time the same user accesses the resource, the counter is reset to 0 failed attempts in a row. Default is 30 minutes.
+
+## Tests
+
+There are a few tests that makes sure the basic funtionality works. These can be run by:
+
+```bash
+python manage.py test tests.tests
+```
+
+Note: for this to work you would have to clone this repo. It does not work if it is included in `INSTALLED_APPS`.
