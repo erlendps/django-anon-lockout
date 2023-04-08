@@ -1,23 +1,19 @@
 """Handlers that contains logic when there is a failed or successful attempt."""
 
-from django.http import HttpRequest
-from anon_lockout import utils
 from anon_lockout.models import AccessSession, Attempt, Lockout
 from anon_lockout.conf import LOCKOUT_DURATION, LOCKOUT_RESET_TIME, LOCKOUT_THRESHOLD
 from datetime import timedelta
 
 
-def handle_attempt(request: HttpRequest, failed: bool, resource: str) -> bool:
+def handle_attempt(ip: str, failed: bool, resource: str) -> bool:
     """
     Handles an attempt.
 
-    It takes in a HttpRequest and boolean. It uses the request to fetch
+    It takes in a str (ip) and boolean. It uses the request to fetch
     the ip of the attempt, while the boolean indicates wheter the attempt
     was successful or not.
     """
 
-    # get hashed ip
-    ip = utils.get_ip(request)
     # create the attempt
     attempt: Attempt = Attempt.objects.create(failed=failed)
     # get session or create it
@@ -30,7 +26,13 @@ def handle_attempt(request: HttpRequest, failed: bool, resource: str) -> bool:
     if lockout != None:
         if lockout.unlocks_on <= attempt.date:
             lockout.active = False
+            lockout.save()
+            session.failed_in_row = 0
+            session.save()
         else:
+            if failed:
+                session.failed_in_row += 1
+                session.save()
             return False
     if failed:
         return handle_failed_attempt(attempt=attempt)
