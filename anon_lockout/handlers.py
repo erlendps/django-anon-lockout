@@ -4,7 +4,7 @@ from django.http import HttpRequest
 from anon_lockout import utils
 from anon_lockout.models import AccessSession, Attempt, Lockout
 from anon_lockout.conf import LOCKOUT_DURATION, LOCKOUT_RESET_TIME, LOCKOUT_THRESHOLD
-import datetime
+from datetime import timedelta
 
 
 def handle_attempt(request: HttpRequest, failed: bool, resource: str) -> bool:
@@ -41,9 +41,8 @@ def handle_attempt(request: HttpRequest, failed: bool, resource: str) -> bool:
 def handle_failed_attempt(attempt: Attempt) -> bool:
     """
     Handles the attempt if it was failed.
-
-
     """
+
     session = attempt.session
     if session.has_active_lockout():
         session.failed_in_row += 1
@@ -55,9 +54,7 @@ def handle_failed_attempt(attempt: Attempt) -> bool:
     session.save()
 
     if session.failed_in_row >= LOCKOUT_THRESHOLD and not session.has_active_lockout():
-        access = session.last_access
-        unlocks = datetime.datetime(
-            access.year, access.month, access.day, access.hour, access.minute + 1)
+        unlocks = session.last_access + timedelta(seconds=LOCKOUT_DURATION)
         Lockout.objects.create(session=session, unlocks_on=unlocks)
         return False
     return True
