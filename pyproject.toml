@@ -9,7 +9,7 @@ include = [
 
 [project]
 name = "django-anon-lockout"
-version = "0.0.1"
+version = "1.0.0"
 authors = [
   { name="Erlend Paulsen Skaaden", email="erlendskaaden@gmail.com" },
 ]
