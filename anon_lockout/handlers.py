@@ -33,7 +33,7 @@ def handle_attempt(ip: str, failed: bool, resource: str) -> bool:
             if failed:
                 session.failed_in_row += 1
                 session.save()
-            return False
+            return True
     if failed:
         return handle_failed_attempt(attempt=attempt)
     else:
@@ -53,11 +53,11 @@ def handle_failed_attempt(attempt: Attempt) -> bool:
     if session.failed_in_row >= LOCKOUT_THRESHOLD and not session.has_active_lockout():
         unlocks = session.last_access + timedelta(seconds=LOCKOUT_DURATION)
         Lockout.objects.create(session=session, unlocks_on=unlocks)
-        return False
-    return True
+        return True
+    return False
 
 
 def handle_successful_attempt(attempt: Attempt) -> bool:
     """Handles a successful attempt."""
 
-    return True
+    return False
