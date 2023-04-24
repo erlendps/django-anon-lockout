@@ -60,4 +60,6 @@ def handle_failed_attempt(attempt: Attempt) -> bool:
 def handle_successful_attempt(attempt: Attempt) -> bool:
     """Handles a successful attempt."""
 
+    attempt.session.successes += 1
+    attempt.session.save()
     return False
