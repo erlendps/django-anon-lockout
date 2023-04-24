@@ -1,5 +1,10 @@
 name: Publish Django Anon Lockout to Pypi
-on: push
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   build-n-publish:
     name: Publish Django Anon Lockout to Pypi
