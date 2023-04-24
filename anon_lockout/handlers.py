@@ -1,7 +1,7 @@
 """Handlers that contains logic when there is a failed or successful attempt."""
 
 from anon_lockout.models import AccessSession, Attempt, Lockout
-from anon_lockout.conf import LOCKOUT_DURATION, LOCKOUT_RESET_TIME, LOCKOUT_THRESHOLD
+from anon_lockout.conf import LOCKOUT_DURATION, LOCKOUT_THRESHOLD
 from datetime import timedelta
 
 
@@ -48,8 +48,6 @@ def handle_failed_attempt(attempt: Attempt) -> bool:
     session = attempt.session
     if session.has_active_lockout():
         session.failed_in_row += 1
-    elif (attempt.date - session.last_access).seconds >= LOCKOUT_RESET_TIME:
-        session.failed_in_row = 1
     else:
         session.failed_in_row += 1
     session.last_access = attempt.date
