@@ -1,7 +1,7 @@
 from django.test import TestCase, override_settings
 
 from anon_lockout import handlers
-from anon_lockout.models import AccessSession, Attempt, Lockout
+from anon_lockout.models import AccessSession
 from random import sample
 import time
 
