@@ -29,6 +29,7 @@ class AccessSession(models.Model):
     failed_in_row = models.IntegerField(default=0)
     last_access = models.DateTimeField()
     resource = models.CharField(max_length=100)
+    successes = models.IntegerField(default=0)
 
     def has_active_lockout(self):
         """Returns true if there is an active lockout connected to this session."""

@@ -14,7 +14,7 @@ def index(request: HttpRequest):
             else:
                 locked = handle_attempt(request, True, "index")
                 text = "Not logged in"
-            if not locked:
+            if locked:
                 form.add_error("password", "You are locked out.")
 
     else:

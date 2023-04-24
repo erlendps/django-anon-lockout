@@ -2,6 +2,8 @@
 
 Django anonymous lockout is a simple django module for keeping track of failed loging attemps to an endpoint that is protected by some password, but does not require authentication with an authentication backend.
 
+It works by fetching the IP of the one making the attempt. If the attempt is successful, it stores this and the resource can be shown. If the attempt fails, the session connected to the attempt get's it's `failed_in_row` field incremented. If this counter exceeds the threshold (default 100), the IP address is locked out for `LOCKOUT_DURATION` time (default 1 day). The only time the counter is reset, is after this lockout has expired.
+
 ## Installation
 
 Djano anonymous lockout can be installed with pip:
@@ -46,7 +48,7 @@ def get_ip(request: HttpRequest):
     return hashlib.sha256(ip.encode("utf-8")).hexdigest()
 ```
 
-This snippet is also included in `utils`.
+This snippet is also included in [`utils.py`](./anon_lockout/utils.py).
 
 ### Example
 
@@ -81,13 +83,11 @@ A working, but very simple example is in [`tests/views.py`](./tests/views.py).
 
 ## Configuration
 
-There are 3 settings that you can override:
+There are 2 settings that you can override:
 
 `LOCKOUT_DURATION`: Decides how long a user is locked out for. Default is 1 day.
 
-`LOCKOUT_THRESHOLD`: Decides how many attempts **in a row** that has to fail for a lockout to occur. Default is 5.
-
-`LOCKOUT_RESET_TIME`: This setting decides how long between two attempts by the same user is needed for the attempt counter to reset. If for instance you set this to 10 minutes, then if a user fails an access to a resource, then assuming the user does not try to access the same resource within 10 minutes, the next time the same user accesses the resource, the counter is reset to 0 failed attempts in a row. Default is 30 minutes.
+`LOCKOUT_THRESHOLD`: Decides how many attempts **in a row** that has to fail for a lockout to occur. Default is 100 attempts.
 
 ## Tests
 
