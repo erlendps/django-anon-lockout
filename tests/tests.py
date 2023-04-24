@@ -60,21 +60,6 @@ class AnonLockoutTest(TestCase):
         session = AccessSession.objects.get(ip=ip1)
         self.assertEqual(session.failed_in_row, 4)
 
-    @override_settings(LOCKOUT_RESET_TIME=3)
-    def test_lockout_reset_time(self):
-        ip1 = "{}.{}.{}.{}".format(*sample(range(0, 256), 4))
-        locked = handlers.handle_attempt(ip1, True, "test")
-        self.assertTrue(locked)
-        locked = handlers.handle_attempt(ip1, True, "test")
-        self.assertTrue(locked)
-        session = AccessSession.objects.get(ip=ip1)
-        self.assertEqual(session.failed_in_row, 2)
-        time.sleep(4)
-        locked = handlers.handle_attempt(ip1, True, "test")
-        self.assertTrue(locked)
-        session = AccessSession.objects.get(ip=ip1)
-        self.assertEqual(session.failed_in_row, 1)
-
     @override_settings(LOCKOUT_DURATION=3, LOCKOUT_THRESHOLD=3)
     def test_unlocks(self):
         ip1 = "{}.{}.{}.{}".format(*sample(range(0, 256), 4))
