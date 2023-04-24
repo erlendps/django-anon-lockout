@@ -46,10 +46,7 @@ def handle_failed_attempt(attempt: Attempt) -> bool:
     """
 
     session = attempt.session
-    if session.has_active_lockout():
-        session.failed_in_row += 1
-    else:
-        session.failed_in_row += 1
+    session.failed_in_row += 1
     session.last_access = attempt.date
     session.save()
 
@@ -62,4 +59,5 @@ def handle_failed_attempt(attempt: Attempt) -> bool:
 
 def handle_successful_attempt(attempt: Attempt) -> bool:
     """Handles a successful attempt."""
+
     return True
